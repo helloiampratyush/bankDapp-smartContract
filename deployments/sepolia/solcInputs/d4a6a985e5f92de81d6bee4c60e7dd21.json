@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/bankdpp.sol": {
+      "content": "//SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\nerror bankdpp__notEnoughSavings();\nerror bankdpp__invalidRequest();\nerror bankdpp__transactionFailed();\n\ncontract bankdpp {\n  mapping(address => uint256) yourAmountInBank;\n\n  function deposite() public payable {\n    yourAmountInBank[msg.sender] += msg.value;\n  }\n\n  function withdraw(uint256 ethAmount) public {\n    uint256 yourFundings = yourAmountInBank[msg.sender];\n    if (yourFundings <= 0) {\n      revert bankdpp__notEnoughSavings();\n    }\n    if (ethAmount > yourFundings) {\n      revert bankdpp__invalidRequest();\n    }\n    yourAmountInBank[msg.sender] -= ethAmount;\n    (bool success, ) = payable(msg.sender).call{ value: ethAmount }(\"\");\n    if (!success) {\n      revert bankdpp__transactionFailed();\n    }\n  }\n\n  function yourTotalAmountInBank() public view returns (uint256) {\n    return yourAmountInBank[msg.sender];\n  }\n\n  function totalBalanceOfBank() public view returns (uint256) {\n    return address(this).balance;\n  }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}

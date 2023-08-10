@@ -1,0 +1,35 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "contracts/bankdppv2.sol": {
+      "content": "//SPDX-License-Identifier: MIT\npragma solidity ^0.8.0;\nerror bankdpp__notEnoughSavings();\nerror bankdpp__invalidRequest();\nerror bankdpp__transactionFailed();\nerror bankdpp__onlyOwner();\n\ncontract bankdppv2 {\n  //state variable\n  mapping(address => uint256) yourAmountInBank;\n  mapping(address => string) feedback;\n  //event\n  event selfDeposit(address depositor, uint256 amount);\n  event othersDeposite(address depositor, address depositee, uint256 amount);\n  event selfWithdraw(address beneficiaries, uint256 amount);\n  event transferring(address to, address from, uint256 amount);\n  event feedBackTime(address provider, string feedback);\n\n  //function\n  function deposite() public payable {\n    yourAmountInBank[msg.sender] += msg.value;\n    emit selfDeposit(msg.sender, msg.value);\n  }\n\n  function depositedByOtherPeople(address _to) public payable {\n    yourAmountInBank[_to] += msg.value;\n    emit othersDeposite(msg.sender, _to, msg.value);\n  }\n\n  function withdraw(uint256 ethAmount) public {\n    uint256 yourFundings = yourAmountInBank[msg.sender];\n    if (yourFundings <= 0) {\n      revert bankdpp__notEnoughSavings();\n    }\n    if (yourFundings > 0) {\n      if (ethAmount > yourFundings) {\n        revert bankdpp__invalidRequest();\n      }\n    }\n\n    yourAmountInBank[msg.sender] -= ethAmount;\n    (bool success, ) = payable(msg.sender).call{value: ethAmount}(\"\");\n    if (!success) {\n      revert bankdpp__transactionFailed();\n    }\n    emit selfWithdraw(msg.sender, ethAmount);\n  }\n\n  function Transfer(address _to, uint256 ethAmount) public {\n    uint256 yourFund = yourAmountInBank[msg.sender];\n    if (yourFund <= 0) {\n      revert bankdpp__notEnoughSavings();\n    }\n    if (yourFund > 0) {\n      if (ethAmount > yourFund) {\n        revert bankdpp__invalidRequest();\n      }\n    }\n    yourAmountInBank[msg.sender] -= ethAmount;\n    (bool success, ) = (_to).call{value: ethAmount}(\"\");\n    if (!success) {\n      revert bankdpp__transactionFailed();\n    }\n    emit transferring(_to, msg.sender, ethAmount);\n  }\n\n  function ProvideFeedBack(string memory feedBack) public {\n    emit feedBackTime(msg.sender, feedBack);\n  }\n\n  function yourTotalAmountInBank() public view returns (uint256) {\n    return yourAmountInBank[msg.sender];\n  }\n\n  function totalBalanceOfBank() public view returns (uint256) {\n    return address(this).balance;\n  }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": false,
+      "runs": 200
+    },
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode",
+          "evm.deployedBytecode",
+          "evm.methodIdentifiers",
+          "metadata",
+          "devdoc",
+          "userdoc",
+          "storageLayout",
+          "evm.gasEstimates"
+        ],
+        "": [
+          "ast"
+        ]
+      }
+    },
+    "metadata": {
+      "useLiteralContent": true
+    }
+  }
+}
